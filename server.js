@@ -5,6 +5,14 @@ const TelegramBot = typeof TelegramBotModule === 'function' ? TelegramBotModule 
 const path = require('path');
 const fs = require('fs');
 
+// Global error handling to prevent process crashes on network/API errors
+process.on('uncaughtException', (err) => {
+  console.error('🔥 Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🔥 Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,26 +40,38 @@ bot.onText(/\/start/, (msg) => {
   db.chatId = msg.chat.id;
   saveData(db);
 
-  const domain = process.env.RAILWAY_STATIC_URL
-    ? `https://${process.env.RAILWAY_STATIC_URL}`
+  // Railway might provide custom domain under PUBLIC_DOMAIN or STATIC_URL
+  const domainRaw = process.env.RAILWAY_PUBLIC_DOMAIN || process.env.RAILWAY_STATIC_URL;
+  const domain = domainRaw
+    ? `https://${domainRaw}`
     : `http://localhost:${process.env.PORT || 3000}`;
+
+  const isHttps = domain.startsWith('https://');
+
+  const inlineKeyboard = [
+    [
+      { text: '🌐 Veb-ilovaga o\'tish (Brauzerda)', url: domain }
+    ]
+  ];
+
+  // Telegram bot API strictly requires HTTPS schema for web_app buttons!
+  if (isHttps) {
+    inlineKeyboard.push([
+      { text: '📱 Telegram ichida ochish (Web App)', web_app: { url: domain } }
+    ]);
+  }
 
   bot.sendMessage(db.chatId,
     '👋 *Salom! Timer Bot tayyor.*\n\n✅ Siz ulangansiz!\nQuyidagi tugmani bosib veb-sahifaga o\'ting va Gmail + timer qo\'shing:',
     {
       parse_mode: 'Markdown',
       reply_markup: {
-        inline_keyboard: [
-          [
-            { text: '🌐 Veb-ilovaga o\'tish (Brauzerda)', url: domain }
-          ],
-          [
-            { text: '📱 Telegram ichida ochish (Web App)', web_app: { url: domain } }
-          ]
-        ]
+        inline_keyboard: inlineKeyboard
       }
     }
-  );
+  ).catch(err => {
+    console.error('⚠️ bot.sendMessage error:', err.message);
+  });
   console.log(`✅ Bot ulandi. Chat ID: ${db.chatId}`);
 });
 
