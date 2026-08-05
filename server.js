@@ -89,12 +89,13 @@ function scheduleTimer(entry) {
 
 async function fireTimer(id) {
   timers.delete(id);
-  const idx = db.entries.findIndex(e => e.id === id);
-  if (idx === -1) return;
-  const entry = db.entries[idx];
+  const entry = db.entries.find(e => e.id === id);
+  if (!entry) return;
 
-  // Automatically delete the entry from storage when the timer expires
-  db.entries.splice(idx, 1);
+  // Set status back to idle so it remains in the list and is ready to be restarted
+  entry.status = 'idle';
+  entry.startedAt = null;
+  entry.totalMs = 0;
   saveData(db);
 
   if (db.chatId) {
