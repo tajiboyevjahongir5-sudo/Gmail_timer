@@ -97,9 +97,9 @@ async function fireTimer(id) {
 
   if (db.chatId) {
     const text =
-      `⏰ *Timer tugadi!*\n\n` +
+      `⏰ *Limit Yangilandi!* ⏰\n\n` +
       `📧 Gmail: \`${entry.gmail}\`\n` +
-      `✅ Gmail limitingiz ochildi!`;
+      `✅ Ushbu Gmail uchun limit ochildi! 🚀`;
     try {
       await bot.sendMessage(db.chatId, text, { parse_mode: 'Markdown' });
     } catch (err) {
