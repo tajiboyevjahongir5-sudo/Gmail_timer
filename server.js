@@ -31,9 +31,26 @@ const timers = new Map(); // in-memory timer handles
 bot.onText(/\/start/, (msg) => {
   db.chatId = msg.chat.id;
   saveData(db);
+
+  const domain = process.env.RAILWAY_STATIC_URL
+    ? `https://${process.env.RAILWAY_STATIC_URL}`
+    : `http://localhost:${process.env.PORT || 3000}`;
+
   bot.sendMessage(db.chatId,
-    '👋 *Salom! Timer Bot tayyor.*\n\n✅ Siz ulangansiz!\nVeb-sahifaga o\'ting va Gmail + timer qo\'shing.',
-    { parse_mode: 'Markdown' }
+    '👋 *Salom! Timer Bot tayyor.*\n\n✅ Siz ulangansiz!\nQuyidagi tugmani bosib veb-sahifaga o\'ting va Gmail + timer qo\'shing:',
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '🌐 Veb-ilovaga o\'tish (Brauzerda)', url: domain }
+          ],
+          [
+            { text: '📱 Telegram ichida ochish (Web App)', web_app: { url: domain } }
+          ]
+        ]
+      }
+    }
   );
   console.log(`✅ Bot ulandi. Chat ID: ${db.chatId}`);
 });
