@@ -89,10 +89,12 @@ function scheduleTimer(entry) {
 
 async function fireTimer(id) {
   timers.delete(id);
-  const entry = db.entries.find(e => e.id === id);
-  if (!entry) return;
-  entry.status = 'notified';
-  entry.notifiedAt = Date.now();
+  const idx = db.entries.findIndex(e => e.id === id);
+  if (idx === -1) return;
+  const entry = db.entries[idx];
+
+  // Automatically delete the entry from storage when the timer expires
+  db.entries.splice(idx, 1);
   saveData(db);
 
   if (db.chatId) {
