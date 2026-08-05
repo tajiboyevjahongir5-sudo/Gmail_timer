@@ -48,21 +48,21 @@ bot.onText(/\/start/, (msg) => {
 
   const isHttps = domain.startsWith('https://');
 
-  const inlineKeyboard = [
-    [
-      { text: '🌐 Veb-ilovaga o\'tish (Brauzerda)', url: domain }
-    ]
-  ];
+  const inlineKeyboard = [];
 
-  // Telegram bot API strictly requires HTTPS schema for web_app buttons!
   if (isHttps) {
     inlineKeyboard.push([
-      { text: '📱 Telegram ichida ochish (Web App)', web_app: { url: domain } }
+      { text: '📱 Telegram ichida ochish', web_app: { url: domain } }
+    ]);
+  } else {
+    // Localhost fallback over HTTP
+    inlineKeyboard.push([
+      { text: '🌐 Veb-ilovaga o\'tish (Brauzerda)', url: domain }
     ]);
   }
 
   bot.sendMessage(db.chatId,
-    '👋 *Salom! Timer Bot tayyor.*\n\n✅ Siz ulangansiz!\nQuyidagi tugmani bosib veb-sahifaga o\'ting va Gmail + timer qo\'shing:',
+    '👋 *Salom! Timer Bot tayyor.*\n\n✅ Siz ulangansiz!\nQuyidagi tugmani bosib Gmail + timer boshqaruv panelini oching:',
     {
       parse_mode: 'Markdown',
       reply_markup: {
