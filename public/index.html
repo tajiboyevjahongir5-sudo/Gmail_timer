@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Timer Bot — Gmail Limit Boshqaruvi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-wrap">
+          <span class="logo-icon">⏱️</span>
+          <div>
+            <h1>Timer Bot</h1>
+            <p class="tagline">Gmail limit tracker</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-card" id="statusCard">
+        <div class="status-dot" id="statusDot"></div>
+        <div>
+          <div class="status-title" id="statusTitle">Tekshirilmoqda...</div>
+          <div class="status-sub">Telegram bot</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Jami</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num active-num" id="statActive">0</div>
+          <div class="stat-label">Faol</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num notified-num" id="statNotified">0</div>
+          <div class="stat-label">Xabar yuborildi</div>
+        </div>
+      </div>
+
+      <button class="btn-add" id="btnAdd" onclick="openModal()">
+        <span class="btn-add-icon">+</span>
+        Gmail qo'shish
+      </button>
+
+      <div class="hint-box">
+        💡 Botga <code>/start</code> yuboring va Gmail'larni qo'shing
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <div class="main-header">
+        <h2>Gmail Ro'yxati</h2>
+        <div class="filter-tabs">
+          <button class="tab active" onclick="filterEntries('all')" id="tabAll">Barchasi</button>
+          <button class="tab" onclick="filterEntries('active')" id="tabActive">Faol ⏳</button>
+          <button class="tab" onclick="filterEntries('notified')" id="tabNotified">Tayyor ✅</button>
+          <button class="tab" onclick="filterEntries('idle')" id="tabIdle">Kutmoqda</button>
+        </div>
+      </div>
+
+      <div class="entries-list" id="entriesList">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">📭</div>
+          <p>Hech qanday Gmail qo'shilmagan</p>
+          <button class="btn-add-small" onclick="openModal()">+ Gmail qo'shish</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Gmail qo'shish</h3>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label>📧 Gmail manzil</label>
+        <input type="email" id="modalGmail" placeholder="example@gmail.com"/>
+      </div>
+
+      <div class="form-group">
+        <label>⏰ Timer vaqti <span class="optional">(ixtiyoriy)</span></label>
+        <div class="time-inputs">
+          <div class="time-field">
+            <input type="number" id="mHours" min="0" max="99" value="0"/>
+            <span class="time-label">soat</span>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-field">
+            <input type="number" id="mMinutes" min="0" max="59" value="0"/>
+            <span class="time-label">daqiqa</span>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-field">
+            <input type="number" id="mSeconds" min="0" max="59" value="0"/>
+            <span class="time-label">soniya</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel-modal" onclick="closeModal()">Bekor</button>
+        <button class="btn-submit" id="btnSubmit" onclick="submitEntry()">
+          <span id="submitText">Qo'shish</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timer Modal (set timer for existing entry) -->
+  <div class="modal-overlay" id="timerModalOverlay" onclick="closeTimerModalOutside(event)">
+    <div class="modal" id="timerModal">
+      <div class="modal-header">
+        <h3>Timer o'rnatish</h3>
+        <button class="modal-close" onclick="closeTimerModal()">✕</button>
+      </div>
+      <div class="gmail-badge" id="timerModalGmail"></div>
+      <div class="form-group">
+        <label>⏰ Timer vaqti</label>
+        <div class="time-inputs">
+          <div class="time-field">
+            <input type="number" id="tHours" min="0" max="99" value="0"/>
+            <span class="time-label">soat</span>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-field">
+            <input type="number" id="tMinutes" min="0" max="59" value="5"/>
+            <span class="time-label">daqiqa</span>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-field">
+            <input type="number" id="tSeconds" min="0" max="59" value="0"/>
+            <span class="time-label">soniya</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel-modal" onclick="closeTimerModal()">Bekor</button>
+        <button class="btn-submit" onclick="submitTimer()">Boshlash ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
