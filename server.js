@@ -35,6 +35,33 @@ function saveData(data) {
 let db = loadData();
 const timers = new Map(); // in-memory timer handles
 
+const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
+
+function cleanupInactiveEntries() {
+  const now = Date.now();
+  const originalLength = db.entries.length;
+
+  db.entries = db.entries.filter(entry => {
+    // Fallback to createdAt or now if lastUpdatedAt is missing
+    const lastActive = entry.lastUpdatedAt || entry.createdAt || now;
+    const isInactive = entry.status !== 'active' && (now - lastActive) > FOURTEEN_DAYS_MS;
+
+    if (isInactive) {
+      console.log(`Base: Auto-deleted inactive entry: ${entry.gmail}`);
+      if (timers.has(entry.id)) {
+        clearTimeout(timers.get(entry.id));
+        timers.delete(entry.id);
+      }
+      return false; // delete
+    }
+    return true; // keep
+  });
+
+  if (db.entries.length !== originalLength) {
+    saveData(db);
+  }
+}
+
 // ─── Telegram Bot ──────────────────────────────────────────────────────────
 bot.onText(/\/start/, (msg) => {
   db.chatId = msg.chat.id;
@@ -96,6 +123,7 @@ async function fireTimer(id) {
   entry.status = 'idle';
   entry.startedAt = null;
   entry.totalMs = 0;
+  entry.lastUpdatedAt = Date.now(); // reset the 14-day inactivity countdown on expiration
   saveData(db);
 
   if (db.chatId) {
@@ -112,14 +140,19 @@ async function fireTimer(id) {
 }
 
 // ─── Restore timers on startup ─────────────────────────────────────────────
+cleanupInactiveEntries(); // clean up on startup
 db.entries.forEach(entry => {
   if (entry.status === 'active') scheduleTimer(entry);
 });
+
+// Run cleanup check every 12 hours
+setInterval(cleanupInactiveEntries, 12 * 60 * 60 * 1000);
 
 // ─── API Routes ────────────────────────────────────────────────────────────
 
 // GET all entries
 app.get('/api/entries', (req, res) => {
+  cleanupInactiveEntries(); // clean up on fetch
   res.json({ entries: db.entries, connected: !!db.chatId });
 });
 
@@ -140,7 +173,8 @@ app.post('/api/entries', (req, res) => {
     totalMs: totalSeconds ? totalSeconds * 1000 : 0,
     startedAt: null,
     notifiedAt: null,
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    lastUpdatedAt: Date.now()
   };
 
   if (totalSeconds && totalSeconds > 0) {
@@ -164,6 +198,7 @@ app.post('/api/entries/:id/start', (req, res) => {
   entry.totalMs = totalSeconds * 1000;
   entry.startedAt = Date.now();
   entry.notifiedAt = null;
+  entry.lastUpdatedAt = Date.now();
   scheduleTimer(entry);
   saveData(db);
   res.json({ success: true, entry });
@@ -177,6 +212,7 @@ app.post('/api/entries/:id/cancel', (req, res) => {
   entry.status = 'idle';
   entry.startedAt = null;
   entry.totalMs = 0;
+  entry.lastUpdatedAt = Date.now();
   saveData(db);
   res.json({ success: true });
 });
