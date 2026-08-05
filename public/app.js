@@ -144,9 +144,12 @@ function startCountdown(entry) {
 
 function formatMs(ms) {
   const total = Math.floor(ms / 1000);
-  const h = Math.floor(total / 3600);
+  const d = Math.floor(total / 86400);
+  const h = Math.floor((total % 86400) / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
+  
+  if (d > 0) return `${d}kun ${pad(h)}:${pad(m)}:${pad(s)}`;
   if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
   return `${pad(m)}:${pad(s)}`;
 }
@@ -166,6 +169,7 @@ function timeAgo(ts) {
 function openModal() {
   document.getElementById('modalOverlay').classList.add('open');
   document.getElementById('modalGmail').value = '';
+  document.getElementById('mDays').value = 0;
   document.getElementById('mHours').value = 0;
   document.getElementById('mMinutes').value = 0;
   document.getElementById('mSeconds').value = 0;
@@ -176,10 +180,11 @@ function closeModalOutside(e) { if (e.target === document.getElementById('modalO
 
 async function submitEntry() {
   const gmail = document.getElementById('modalGmail').value.trim();
+  const d = parseInt(document.getElementById('mDays').value) || 0;
   const h = parseInt(document.getElementById('mHours').value) || 0;
   const m = parseInt(document.getElementById('mMinutes').value) || 0;
   const s = parseInt(document.getElementById('mSeconds').value) || 0;
-  const total = h * 3600 + m * 60 + s;
+  const total = d * 86400 + h * 3600 + m * 60 + s;
 
   if (!gmail || !gmail.includes('@')) {
     document.getElementById('modalGmail').focus();
@@ -214,6 +219,7 @@ async function submitEntry() {
 function openTimerModal(id, gmail) {
   timerModalEntryId = id;
   document.getElementById('timerModalGmail').textContent = gmail;
+  document.getElementById('tDays').value = 0;
   document.getElementById('tHours').value = 0;
   document.getElementById('tMinutes').value = 5;
   document.getElementById('tSeconds').value = 0;
@@ -223,10 +229,11 @@ function closeTimerModal() { document.getElementById('timerModalOverlay').classL
 function closeTimerModalOutside(e) { if (e.target === document.getElementById('timerModalOverlay')) closeTimerModal(); }
 
 async function submitTimer() {
+  const d = parseInt(document.getElementById('tDays').value) || 0;
   const h = parseInt(document.getElementById('tHours').value) || 0;
   const m = parseInt(document.getElementById('tMinutes').value) || 0;
   const s = parseInt(document.getElementById('tSeconds').value) || 0;
-  const total = h * 3600 + m * 60 + s;
+  const total = d * 86400 + h * 3600 + m * 60 + s;
   if (total <= 0) { alert('Vaqt kiriting!'); return; }
 
   try {

@@ -100,7 +100,12 @@
         <label>⏰ Timer vaqti <span class="optional">(ixtiyoriy)</span></label>
         <div class="time-inputs">
           <div class="time-field">
-            <input type="number" id="mHours" min="0" max="99" value="0"/>
+            <input type="number" id="mDays" min="0" max="365" value="0"/>
+            <span class="time-label">kun</span>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-field">
+            <input type="number" id="mHours" min="0" max="23" value="0"/>
             <span class="time-label">soat</span>
           </div>
           <div class="time-sep">:</div>
@@ -137,7 +142,12 @@
         <label>⏰ Timer vaqti</label>
         <div class="time-inputs">
           <div class="time-field">
-            <input type="number" id="tHours" min="0" max="99" value="0"/>
+            <input type="number" id="tDays" min="0" max="365" value="0"/>
+            <span class="time-label">kun</span>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-field">
+            <input type="number" id="tHours" min="0" max="23" value="0"/>
             <span class="time-label">soat</span>
           </div>
           <div class="time-sep">:</div>
